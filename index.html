@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-GorY9PQGa1NbbsJhgvwXKtBtsNIyTkUnuJnnx/3Wxls=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>전시 시뮬레이터</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" integrity="sha384-ei/b2Mz3F5J8nqTvpKS89CkzDCuD7Cc+/F+OsaPUKItzHgLNKnGq3rjtYq/B7RnO" crossorigin="anonymous">
 <style>
 :root{
   --bg:#efece6; --panel:#fbfaf8; --ink:#1e2124; --muted:#6a6e74; --faint:#9a9ea4;
@@ -1600,7 +1601,7 @@ async function exportSheet(){
   }).join('');
   const un=S.artworks.filter(a=>!a.wallId);
   const html=(`<!doctype html><html lang="${LANG}"><head><meta charset="utf-8"><title>${esc(S.title||TR('전시','Exhibition'))} ${TR('설치 지시서','install sheet')}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" integrity="sha384-ei/b2Mz3F5J8nqTvpKS89CkzDCuD7Cc+/F+OsaPUKItzHgLNKnGq3rjtYq/B7RnO" crossorigin="anonymous">
   <style>@page{size:A4 landscape;margin:12mm}body{font-family:Pretendard,'Malgun Gothic',sans-serif;color:#1e2124;margin:24px;font-size:12px}
   header{border-bottom:2px solid #1e2124;padding-bottom:10px;margin-bottom:18px}h1{margin:0 0 4px;font-size:20px}.muted{color:#6a6e74}
   section{page-break-inside:avoid;break-inside:avoid;margin-bottom:28px}section+section{page-break-before:always;break-before:page}
@@ -1608,14 +1609,14 @@ async function exportSheet(){
   table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{border:1px solid #cfc9be;padding:5px 7px;text-align:left;vertical-align:top}th{background:#f3f1ec;font-weight:600;font-size:11px}
   td.r{text-align:right}td.c{text-align:center}.bar{position:fixed;top:12px;right:16px}.bar button{font:inherit;padding:8px 14px;border-radius:6px;border:0;background:#2d5f66;color:#fff;cursor:pointer}
   @media print{.bar{display:none}body{margin:0}}</style></head><body>
-  <div class="bar"><button onclick="print()">${TR('인쇄 / PDF로 저장','Print / save as PDF')}</button></div>
+  <div class="bar"><button data-print onclick="print()">${TR('인쇄 / PDF로 저장','Print / save as PDF')}</button></div>
   <header><h1>${esc(S.title||TR('전시','Exhibition'))} ${TR('설치 지시서','install sheet')}</h1><div class="muted">${S.artist?esc(S.artist)+' · ':''}${new Date().toLocaleDateString(EN?'en-US':'ko-KR')} · ${EN?`${S.walls.length} walls · units ${isIn()?'inches':'cm'} · center line ${fmtL(S.eyeLine)}${UL()} · all measurements to outside of frame`:`벽 ${S.walls.length}면 · 단위 ${isIn()?'인치':'cm'} · 중심 기준선 ${fmtL(S.eyeLine)}${UL()} · 모든 치수는 액자 바깥 기준`}</div><div class="muted" style="margin-top:2px">${TR('전시 시뮬레이터','Exhibition Simulator')} · ${CREDIT_TXT}</div></header>
   ${parts}
   ${un.length?`<section><h2>${TR('미배치 작품','Unplaced works')}</h2><table><thead><tr><th>${TR('제목','Title')}</th><th>${TR('규격','Size')}</th><th>${TR('전체 크기','Overall')}</th></tr></thead><tbody>${un.map(a=>`<tr><td>${esc(a.title)}</td><td>${esc(sizeLabel(a))}</td><td>${fmtL(outerW(a))} × ${fmtL(outerH(a))}</td></tr>`).join('')}</tbody></table></section>`:''}
   <footer class="muted" style="text-align:center;margin-top:18px;font-size:11px">${TR('전시 시뮬레이터','Exhibition Simulator')} · ${CREDIT_TXT}</footer>
   </body></html>`);
   const win=window.open('','_blank');
-  if(win){win.document.write(html);win.document.close();}
+  if(win){win.document.write(html.replace(' onclick="print()"',''));win.document.close();const pb=win.document.querySelector('[data-print]');if(pb)pb.addEventListener('click',()=>win.print());}
   else{download(`${safeName(S.title)}_${TR('설치지시서','install-sheet')}.html`,new Blob([html],{type:'text/html'}));toast(TR('팝업이 막혀 있어 설치 지시서를 파일로 받았어요. 열어서 인쇄하세요.','Pop-ups are blocked, so the install sheet was downloaded. Open it to print.'));}
 }
 function saveProjectFile(){
@@ -1766,11 +1767,12 @@ let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(rend
    벽은 순서대로 이어 붙는다: 벽마다 앞 벽 끝에서 turn°(+는 방 안쪽) 꺾고 gap cm 띄운 뒤 시작.
    좌표: cm, y 위쪽. 벽의 앞면 법선 n 쪽이 방 안. */
 const THREE_SRC='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+const THREE_SRI='sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ=='; // cdnjs가 공개한 지문과 같음
 const WALL_T=12,EYE_H=160;
 const V3={renderer:null,scene:null,cam:null,group:null,tip:null,mode:'orbit',orbit:null,walk:null,bounds:null,pickables:[],keys:new Set(),raf:0,last:0,loading:null,gen:0};
 function load3D(){
   if(window.THREE)return Promise.resolve();
-  if(!V3.loading)V3.loading=new Promise((res,rej)=>{const s=document.createElement('script');s.src=THREE_SRC;s.onload=res;s.onerror=()=>{V3.loading=null;s.remove();rej(new Error('three'));};document.head.appendChild(s);});
+  if(!V3.loading)V3.loading=new Promise((res,rej)=>{const s=document.createElement('script');s.src=THREE_SRC;s.integrity=THREE_SRI;s.crossOrigin='anonymous';s.onload=res;s.onerror=()=>{V3.loading=null;s.remove();rej(new Error('three'));};document.head.appendChild(s);});
   return V3.loading;
 }
 function planWalls(){
