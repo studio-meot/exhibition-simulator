@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-OPQZu9kn6mCoOhmHrUOYN2qjICe4ilM8OszZwSDacl8=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>전시 시뮬레이터</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-JFvBJRd8hz3kjtMpyH+Z+C/RDFOw1dbdr12lnszOemw=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>Exhibition Simulator</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" integrity="sha384-ei/b2Mz3F5J8nqTvpKS89CkzDCuD7Cc+/F+OsaPUKItzHgLNKnGq3rjtYq/B7RnO" crossorigin="anonymous">
 <style>
 :root{
@@ -452,8 +452,9 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 
 <script>
 /* 언어: 저장된 선택 → 없으면 브라우저 언어 */
-const LANG=(()=>{try{const v=localStorage.getItem('exhibit-sim-lang');if(v==='ko'||v==='en')return v;}catch(e){}return /^ko/i.test(navigator.language||'')?'ko':'en';})();
+const LANG=(()=>{try{const v=localStorage.getItem('exhibit-sim-lang');if(v==='ko'||v==='en')return v;}catch(e){}return 'en';})(); // 처음 여는 사람은 영어. 언어 단추로 고른 값은 기억한다
 const EN=LANG==='en';
+if(!EN){document.documentElement.lang='ko';document.title='전시 시뮬레이터';}
 const TR=(ko,en)=>EN?en:ko;
 const UNTITLED=TR('무제','Untitled');
 if(EN){
