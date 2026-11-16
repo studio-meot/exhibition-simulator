@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-GorY9PQGa1NbbsJhgvwXKtBtsNIyTkUnuJnnx/3Wxls=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-OPQZu9kn6mCoOhmHrUOYN2qjICe4ilM8OszZwSDacl8=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>전시 시뮬레이터</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" integrity="sha384-ei/b2Mz3F5J8nqTvpKS89CkzDCuD7Cc+/F+OsaPUKItzHgLNKnGq3rjtYq/B7RnO" crossorigin="anonymous">
 <style>
@@ -185,6 +185,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 .guide.h{left:-24px;right:-24px;height:0;border-top:1px solid var(--guide)}
 .brand-by{font-size:11.5px;font-weight:500;color:var(--faint);letter-spacing:0}
 .credit{flex:none;font-size:11px;color:var(--muted);text-align:center;padding:5px 12px;background:var(--panel);border-top:1px solid var(--line)}
+.credit .tip{margin-left:12px;color:var(--accent,#1f5c5c);font-weight:600;text-decoration:none;white-space:nowrap}
+.credit .tip:hover{text-decoration:underline}
 .hint{font-size:11.5px;color:var(--muted);padding:6px 12px;background:var(--panel);border-top:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hint kbd{font-family:inherit;font-size:10.5px;border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:#fff}
 
@@ -345,7 +347,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 </head>
 <body>
 <header class="topbar">
-  <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span data-en="Exhibition Simulator">전시 시뮬레이터</span><span class="brand-by">made by 2pm.insight</span></div>
+  <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span data-en="Exhibition Simulator">전시 시뮬레이터</span><span class="brand-by">made by studio MEOT</span></div>
   <input id="projTitle" class="meta-in" placeholder="전시 제목 입력" aria-label="전시 제목" data-en-ph="Exhibition title" data-en-aria="Exhibition title">
   <input id="projArtist" class="meta-in artist" placeholder="작가 이름" aria-label="작가 이름" data-en-ph="Artist name" data-en-aria="Artist name">
   <div class="spacer"></div>
@@ -420,7 +422,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
   <aside class="inspector" id="inspector"></aside>
 </main>
 <nav class="mtabs" id="mtabs"><button data-mt="lib"><i>▦</i><span data-en="Artworks">작품</span></button><button data-mt="insp"><i>⚙</i><span id="mtInspLbl">설정</span><span class="dot" id="mtDot" hidden></span></button></nav>
-<footer class="credit" data-en="Exhibition Simulator · made by 2pm.insight">전시 시뮬레이터 · made by 2pm.insight</footer>
+<footer class="credit"><span data-en="Exhibition Simulator · made by studio MEOT">전시 시뮬레이터 · made by studio MEOT</span><a class="tip" id="tipLink" href="https://ko-fi.com/studiomeot" target="_blank" rel="noopener noreferrer" data-en="☕ Support on Ko-fi">☕ 커피 한 잔 후원</a></footer>
 
 <div class="modal-back" id="sizeModal" role="dialog" aria-modal="true">
   <div class="modal">
@@ -1440,7 +1442,7 @@ function inspWall(w){
 }
 
 /* ───────── export ───────── */
-const CREDIT='2pm.insight',CREDIT_TXT='made by '+CREDIT;
+const CREDIT='studio MEOT',CREDIT_TXT='made by '+CREDIT;
 function drawCredit(ctx,c,fs){ctx.save();ctx.fillStyle='#8a8e94';ctx.font=`${fs}px Pretendard, 'Malgun Gothic', sans-serif`;ctx.textAlign='right';ctx.textBaseline='alphabetic';ctx.fillText(CREDIT_TXT,c.width-fs,fs*1.9);ctx.restore();}
 function download(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
 const safeName=s=>(s||TR('전시','exhibition')).replace(/[\\/:*?"<>|]+/g,'_').trim()||TR('전시','exhibition');
