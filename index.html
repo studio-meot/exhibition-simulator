@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-JFvBJRd8hz3kjtMpyH+Z+C/RDFOw1dbdr12lnszOemw=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PQXdmC0Iean11yZ7NoD1i1078XuTdw4avCaHBuAHC98=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Exhibition Simulator</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" integrity="sha384-ei/b2Mz3F5J8nqTvpKS89CkzDCuD7Cc+/F+OsaPUKItzHgLNKnGq3rjtYq/B7RnO" crossorigin="anonymous">
 <style>
@@ -452,7 +452,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 
 <script>
 /* 언어: 저장된 선택 → 없으면 브라우저 언어 */
-const LANG=(()=>{try{const v=localStorage.getItem('exhibit-sim-lang');if(v==='ko'||v==='en')return v;}catch(e){}return 'en';})(); // 처음 여는 사람은 영어. 언어 단추로 고른 값은 기억한다
+const LANG=(()=>{try{const v=localStorage.getItem('exhibit-sim-lang');if(v==='ko'||v==='en')return v;}catch(e){}return /^ko/i.test(navigator.language||'')?'ko':'en';})(); // 브라우저가 한국어면 한국어, 나머지는 영어. 언어 단추로 고른 값이 먼저
 const EN=LANG==='en';
 if(!EN){document.documentElement.lang='ko';document.title='전시 시뮬레이터';}
 const TR=(ko,en)=>EN?en:ko;
@@ -522,10 +522,12 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2200);}
 
 /* ───────── state ───────── */
-const unitNow=()=>{try{return S.unit;}catch(e){return EN?'in':'cm';}};
+// 인치는 미국 영어(en-US, 지역 없는 en)일 때만. 나머지는 cm
+const INCH_DEFAULT=EN&&/^en(-US)?$/i.test(navigator.language||'');
+const unitNow=()=>{try{return S.unit;}catch(e){return INCH_DEFAULT?'in':'cm';}};
 function newWall(n,h){const d=unitNow()==='in'?304.8:300;return {id:uid('w'),name:TR('벽 ','Wall ')+n,width:d,height:h||d,color:'#f6f4ef'};}
 function defaultState(){
-  const inch=EN,d=inch?304.8:300;
+  const inch=INCH_DEFAULT,d=inch?304.8:300;
   return {version:1,unit:inch?'in':'cm',title:'',artist:'',eyeLine:inch?144.78:145,snap:inch?1.27:5,grid:true,showDims:true,showLabels:true,
           caption:inch?{show:true,w:10.16,h:6.35,gap:5.08,price:true}:{show:true,w:10,h:6,gap:5,price:true},
           walls:[{...newWall(1),width:d,height:d}],artworks:[],obstacles:[]};
