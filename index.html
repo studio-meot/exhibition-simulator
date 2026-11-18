@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-8xqnlug2q3fnjjeNutS2VNedqmCGeHS10Ck7lX3m5WQ=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-v6VmFMuIxV+GzQBRQOPSkJx9xqY5C8UFpQxYSusWKlU=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Exhibition Simulator · 전시 시뮬레이터</title>
 <meta name="description" content="Plan your artwork layout with real wall dimensions. 실제 벽 치수에 맞춰 작품을 미리 걸어 보세요.">
 <meta property="og:type" content="website">
@@ -292,7 +292,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 .ac-badge.plan{background:rgba(91,74,138,.9)}
 .ac-noimg{aspect-ratio:1;display:grid;place-items:center;background:#f3f0ea;color:var(--faint);font-size:12px;border-bottom:1px dashed var(--line-strong)}
 .al-msg{color:var(--danger);font-size:12px;min-height:1.2em;margin-top:8px;line-height:1.5}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#26292d;color:#fff;padding:9px 14px;border-radius:8px;font-size:12.5px;opacity:0;pointer-events:none;transition:.2s;z-index:60;word-break:keep-all}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#26292d;color:#fff;padding:9px 14px;border-radius:8px;font-size:12.5px;opacity:0;pointer-events:none;transition:.2s;z-index:60;word-break:keep-all;width:max-content;max-width:calc(100vw - 32px);white-space:pre-line;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%)}
 
 @media (max-width:1180px){.layout{--lw:230px;--rw:280px}}
@@ -690,7 +690,7 @@ function showTip(){
   const tip=nextTip();if(!tip)return;
   if(document.hidden||$('#toast').classList.contains('show')){tipTimer=setTimeout(showTip,1500);return;}
   tipShownThisVisit=true;markTip(tip);
-  if(tip==='inapp'){toast(TR("앱 안에서 열린 화면이라 저장이 따로 돼요. 다른 브라우저로 옮길 땐 '파일로 저장' 후 불러오세요","You're in an in-app browser, so your work is saved separately here. To move it, Save to file and open it in your browser"),10000);return;}
+  if(tip==='inapp'){toast(TR("다른 브라우저에선 작업이 안 보일 수 있어요.\n옮길 땐 '파일로 저장' → '불러오기'","Your work may not show up in other browsers.\nTo move it: Save to file → Open"),10000);return;}
   toast(tip==='walk'?TR('3D에서 전시장 안을 걸어 볼 수 있어요',(MOB()?'Tap':'Click')+' 3D to walk through your show')
     :MOB()?TR('☰ 메뉴 > 내보내기에서 설치 도면을 인쇄하거나 PDF로 받을 수 있어요','Print or save your install plan from ☰ menu > Export')
     :TR('내보내기에서 설치 도면을 인쇄하거나 PDF로 받을 수 있어요','Print or save your install plan from Export'),7000);
