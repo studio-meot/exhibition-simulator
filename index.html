@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-v6VmFMuIxV+GzQBRQOPSkJx9xqY5C8UFpQxYSusWKlU=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Fw9I4/nghesbg5LD3JQAH9xIOLQdTAFDTYQ5SUkNQbg=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Exhibition Simulator · 전시 시뮬레이터</title>
 <meta name="description" content="Plan your artwork layout with real wall dimensions. 실제 벽 치수에 맞춰 작품을 미리 걸어 보세요.">
 <meta property="og:type" content="website">
@@ -358,6 +358,37 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
   .walkpad [data-k="w"]{grid-column:2;grid-row:1}.walkpad [data-k="arrowleft"]{grid-column:1;grid-row:2}
   .walkpad [data-k="s"]{grid-column:2;grid-row:2}.walkpad [data-k="arrowright"]{grid-column:3;grid-row:2}
 }
+/* 벽 한 번에 만들기 */
+.wz{width:min(780px,100%)}
+.wz-body{padding:16px 20px;overflow:auto;display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+.wz-body.pick{display:block}
+.wz-shapes{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin-top:10px}
+.wz-shape{border:1px solid var(--line-strong);background:#fff;border-radius:9px;padding:12px 8px 9px;display:grid;justify-items:center;gap:7px;font-size:13px;font-weight:600}
+.wz-shape:hover,.wz-shape:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
+.wz-shape svg{width:72px;height:54px;display:block}
+.wz-side{position:sticky;top:0;display:grid;gap:10px}
+.wz-plan{background:var(--canvas);border-radius:9px;padding:6px}
+.wz-plan svg{width:100%;height:230px;display:block}
+.wz-cap{font-size:11px;color:var(--muted);text-align:right;padding:2px 4px 0}
+.wz-cards{display:grid;gap:8px}
+.wz-card{border:1px solid var(--line);border-radius:9px;padding:9px 10px;display:grid;gap:7px;background:#fff}
+.wz-card.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.wz-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wz-row>b{min-width:44px;font-size:13px}
+.wz-row .unit-in{width:130px}
+.wz-row .spacer{flex:1}
+.wz-card .seg button{padding:5px 9px;font-size:12px}
+.wz-card details summary{font-size:12px;color:var(--muted);cursor:pointer}
+.wz-card details .unit-in{width:130px;margin-top:6px}
+.wz-mode{margin-bottom:10px}
+.wz-mode .seg button{font-size:12px;padding:6px 10px}
+@media (max-width:900px){
+  .wz{max-height:calc(100dvh - 16px)}
+  .wz-body{grid-template-columns:1fr;padding:12px;gap:12px}
+  .wz-side{position:sticky;top:-12px;z-index:2;background:#fff;padding-top:2px}
+  .wz-plan svg{height:150px}
+  .wz-shapes{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
@@ -404,6 +435,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
       <div class="seg" id="viewSeg"><button data-v="wall" data-en="Wall">벽 편집</button><button data-v="elev" data-en="All walls">전체 벽</button><button data-v="3d">3D</button></div>
       <div class="tabs" id="wallTabs"></div>
       <button class="btn sm" id="addWallBtn" data-en="+ Add wall">+ 벽 추가</button>
+      <button class="btn sm" id="wzBtn" data-en="Build walls">벽 만들기</button>
       <button class="btn sm ghost panel-tg" id="inspToggle"></button>
     </div>
     <div class="toolbar sub" id="tb3d" hidden>
@@ -459,6 +491,13 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
     <div class="modal-head"><h3 data-en="My exhibitions">내 전시</h3><div class="spacer"></div><button class="btn ghost" id="pmClose" aria-label="닫기" data-en-aria="Close">✕</button></div>
     <div class="pm-list" id="pmList"></div>
     <div class="modal-foot"><span class="pm-note" data-en="Saved in this browser only. Use Save to file to back up or move to another computer.">이 브라우저에만 저장돼요. 다른 컴퓨터로 옮기거나 보관하려면 '파일로 저장'을 쓰세요.</span><button class="btn" id="pmImport" data-en="Open file">파일 불러오기</button><button class="btn primary" id="pmNew" data-en="+ New exhibition">+ 새 전시</button></div>
+  </div>
+</div>
+<div class="modal-back" id="wallModal" role="dialog" aria-modal="true" aria-labelledby="wzHead">
+  <div class="modal wz">
+    <div class="modal-head"><h3 id="wzHead" data-en="Build your walls">전시장 벽 만들기</h3><div class="spacer"></div><button class="btn ghost" id="wzClose" aria-label="닫기" data-en-aria="Close">✕</button></div>
+    <div class="wz-body" id="wzBody"></div>
+    <div class="modal-foot" id="wzFoot"></div>
   </div>
 </div>
 <input type="file" id="projInput" accept=".json,application/json" hidden>
@@ -617,7 +656,7 @@ function cleanProject(st,imgs){
   out.caption={show:c.show!==false,w:num(c.w,10,2,200),h:num(c.h,6,2,200),gap:num(c.gap,5,0,200),price:c.price!==false};
   const walls=Array.isArray(st.walls)?st.walls.filter(w=>w&&typeof w==='object').slice(0,200):[];
   out.walls=walls.map((w,i)=>({id:nid(w.id,'w'),name:str(w.name,TR('벽 ','Wall ')+(i+1),200),width:num(w.width,300,30,100000),height:num(w.height,300,50,10000),
-    color:col(w.color,'#f6f4ef'),turn:num(w.turn,90,-180,180),gap:num(w.gap,0,0,100000)}));
+    color:col(w.color,'#f6f4ef'),turn:num(w.turn,90,-180,180),gap:num(w.gap,0,0,100000),...(w.hGuess===true?{hGuess:true}:{})}));
   if(!out.walls.length)out.walls=[newWall(1)];
   const images={};const imgIds=new Map();
   Object.entries(imgs&&typeof imgs==='object'?imgs:{}).forEach(([k,v])=>{if(typeof v==='string'&&SAFE_IMG.test(v)){const n=SAFE_ID.test(k)?k:uid('img');imgIds.set(k,n);images[n]=v;}});
@@ -1427,7 +1466,7 @@ function inspWall(w){
   <div class="sec">
     <label class="field"><span>${TR('벽 이름','Wall name')}</span><input id="wName" placeholder="${TR('예: 입구 정면 벽','e.g. Wall facing entrance')}"></label>
     <div class="grid2"><label class="field"><span>${TR('가로 길이','Width')}</span>${unitInput('wW',fmtL(w.width),{step:10,min:30})}</label><label class="field"><span>${TR('높이','Height')}</span>${unitInput('wH',fmtL(w.height),{step:10,min:50})}</label></div>
-    <p class="note num">${dimM(w.width)} × ${dimM(w.height)} · ${isIn()?TR('인치는 1/8″ 단위로 반올림해 보여 줘요. 24 1/2처럼 분수로 적어도 돼요.','Inches are shown to the nearest 1/8″. You can type fractions like 24 1/2.'):TR('실제 위치와 크기는 모두 cm로 계산돼요.','All positions and sizes are in cm.')}</p>
+    <p class="note num">${dimM(w.width)} × ${dimM(w.height)} · ${w.hGuess?TR('높이는 임시값이에요. ','Height is a placeholder. '):''}${isIn()?TR('인치는 1/8″ 단위로 반올림해 보여 줘요. 24 1/2처럼 분수로 적어도 돼요.','Inches are shown to the nearest 1/8″. You can type fractions like 24 1/2.'):TR('실제 위치와 크기는 모두 cm로 계산돼요.','All positions and sizes are in cm.')}</p>
     ${idx>0?`<span class="m-label">${EN?`3D layout · how it joins '${esc(S.walls[idx-1].name)}'`:`3D 배치 · '${esc(S.walls[idx-1].name)}'에 이어지는 방식`}</span>
     <div class="seg" id="wTurnSeg" style="margin-bottom:8px">${[['90',TR('안쪽 90°','Inward 90°')],['0',TR('일직선','Straight')],['-90',TR('바깥 90°','Outward 90°')]].map(([v,t])=>`<button data-t="${v}" class="${String(w.turn??90)===v?'active':''}">${t}</button>`).join('')}</div>
     <div class="grid2"><label class="field"><span>${TR('꺾는 각도','Turn angle')}</span>${unitInput('wTurn',String(r1(w.turn??90)),{step:5,unit:'°'})}</label><label class="field"><span>${TR('앞 벽과 띄우기','Gap from previous wall')}</span>${unitInput('wGap',fmtL(w.gap||0),{step:10,min:0})}</label></div>
@@ -1461,7 +1500,7 @@ function inspWall(w){
   $('#cPrice').onchange=e=>{record();S.caption.price=e.target.checked;renderAll();saveSoon();};
   bindNum('cW',v=>S.caption.w=r1(v),{min:2});bindNum('cH',v=>S.caption.h=r1(v),{min:2});bindNum('cGap',v=>S.caption.gap=r1(v),{min:0});
   bindCapPicker('wCap',()=>artsOn(w.id));
-  bindNum('wW',v=>w.width=r1(v),{min:30});bindNum('wH',v=>w.height=r1(v),{min:50});
+  bindNum('wW',v=>w.width=r1(v),{min:30});bindNum('wH',v=>{w.height=r1(v);delete w.hGuess;},{min:50});
   bindNum('wTurn',v=>w.turn=clamp(r1(v),-180,180));bindNum('wGap',v=>w.gap=r1(v),{min:0});
   const ts=$('#wTurnSeg');if(ts)ts.addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;record();w.turn=Number(b.dataset.t);renderAll();saveSoon();});
   const bgPick=()=>{attachTarget='bg:'+w.id;$('#attachInput').click();};
@@ -1777,7 +1816,7 @@ $('#pmList').addEventListener('click',async e=>{
     renderProjects();toast(TR('전시를 지웠어요','Exhibition deleted'));
   }
 });
-$('#pmNew').onclick=async()=>{await startProject(defaultState(),{});closeProjects();toast(TR('새 전시를 만들었어요','New exhibition created'));};
+$('#pmNew').onclick=async()=>{await startProject(defaultState(),{});closeProjects();wzOpen(true);};
 $('#pmImport').onclick=()=>$('#projInput').click();
 $('#pmClose').onclick=closeProjects;
 $('#projModal').addEventListener('click',e=>{if(e.target.id==='projModal')closeProjects();});
@@ -1793,6 +1832,7 @@ menu.addEventListener('click',e=>{const b=e.target.closest('[data-exp]');if(!b)r
 let lastNudge=0;
 document.addEventListener('keydown',e=>{
   const t=e.target,typing=/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable;
+  if(WZ.open){if(e.key==='Escape')wzClose();return;}
   if(M){if(e.key==='Escape')closeModal();return;}
   if(PM){if(e.key==='Escape')closeProjects();return;}
   if(U.bgEdit&&e.key==='Escape'){U.bgEdit=null;renderAll();return;}
@@ -2140,6 +2180,118 @@ $('#langBtn').textContent=EN?'한국어':'English';
 $('#langBtn').title=EN?'한국어로 보기':'View in English';
 $('#langBtn').onclick=async()=>{clearTimeout(saveTimer);try{await writeProject();}catch(e){}
   try{localStorage.setItem('exhibit-sim-lang',EN?'ko':'en');}catch(e){}location.reload();};
+/* ───────── 벽 한 번에 만들기: 모양 고르기 → 길이 적기 → 위에서 본 평면도로 확인 ─────────
+   AI 없이, 사진 없이. 기본은 지금 벽 뒤에 이어 붙이기. 모두 바꾸기는 확인 후, 되돌리기로 취소 가능 */
+const WZ={open:false,step:'pick',rows:[],height:300,hTouched:false,mode:'add',skip:false,focus:0};
+const WZ_SHAPES=[['line',1],['L',2],['U',3],['box',4],['free',1]];
+const WZ_MAX={w:100000,h:10000,walls:200}; // 불러오기 정리(cleanProject)와 같은 한도
+const wzName=k=>({line:TR('일자','Straight'),L:TR('ㄱ자','L-shape'),U:TR('ㄷ자','U-shape'),box:TR('ㅁ자','Four walls'),free:TR('직접 만들기','Custom')})[k];
+const wzDef=()=>S.unit==='in'?304.8:300;
+function wzBlank(){const w=S.walls[0];return S.walls.length===1&&!S.artworks.some(a=>a.wallId)&&!S.obstacles.length&&!w.bg&&w.name===TR('벽 ','Wall ')+'1'&&w.color==='#f6f4ef'&&Math.abs(w.width-wzDef())<0.5&&Math.abs(w.height-wzDef())<0.5;}
+/* 길이 글자 → cm. cm일 때는 557, 557cm, 5.57m, 5m 57cm 모두 받는다 */
+function wzParse(str){
+  const t=String(str??'').trim().toLowerCase().replace(/,/g,'.');
+  if(!isIn()){const m=t.match(/^(\d+(?:\.\d+)?)\s*m(?!m)\s*(?:(\d+(?:\.\d+)?)\s*(?:cm)?)?$/);if(m)return parseFloat(m[1])*100+(m[2]?parseFloat(m[2]):0);}
+  return parseLen(t);
+}
+function planOf(list){
+  let p=[0,0],d=[1,0];
+  return list.map((w,i)=>{
+    if(i>0){const th=(w.turn??90)*Math.PI/180,n=[-d[1],d[0]];d=[d[0]*Math.cos(th)+n[0]*Math.sin(th),d[1]*Math.cos(th)+n[1]*Math.sin(th)];const g=w.gap||0;p=[p[0]+d[0]*g,p[1]+d[1]*g];}
+    const a=p.slice();p=[p[0]+d[0]*w.width,p[1]+d[1]*w.width];return {a,b:p.slice(),n:[-d[1],d[0]]};
+  });
+}
+/* 위에서 본 대략 모양 (3D와 같은 방향). from: 새 벽이 시작하는 순번(그 앞은 지금 있는 벽, 흐리게), on: 강조할 순번 */
+function planSVG(list,{W=300,H=200,pad=28,from=0,on=-1,labels=true,stroke=5}={}){
+  const P=planOf(list);if(!P.length)return '';
+  const xs=P.flatMap(s=>[s.a[0],s.b[0]]),ys=P.flatMap(s=>[s.a[1],s.b[1]]);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const span=Math.max(x1-x0,y1-y0,1),k=Math.min((W-2*pad)/Math.max(x1-x0,span*0.02),(H-2*pad)/Math.max(y1-y0,span*0.02));
+  const ox=(W-(x1-x0)*k)/2-x0*k,oy=(H-(y1-y0)*k)/2-y0*k,X=v=>r1(v*k+ox),Y=v=>r1(v*k+oy);
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">`;
+  P.forEach((q,i)=>{const old=i<from,c=i===on?'#2d5f66':old?'#bdb7ab':'#2b2e33';
+    s+=`<line x1="${X(q.a[0])}" y1="${Y(q.a[1])}" x2="${X(q.b[0])}" y2="${Y(q.b[1])}" stroke="${c}" stroke-width="${stroke}" stroke-linecap="square"/>`;
+    if(labels){const mx=(X(q.a[0])+X(q.b[0]))/2,my=(Y(q.a[1])+Y(q.b[1]))/2,cx=r1(mx+q.n[0]*15),cy=r1(my+q.n[1]*15);
+      s+=`<circle cx="${cx}" cy="${cy}" r="9" fill="${c}"/><text x="${cx}" y="${r1(cy+4)}" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">${i+1}</text>`;
+      if(!old){const side=Math.abs(q.n[0])>Math.abs(q.n[1]),tx=r1(mx-q.n[0]*(side?8:0)),ty=r1(my-q.n[1]*14+4); // 길이는 벽 바깥쪽에
+        s+=`<text x="${tx}" y="${ty}" font-size="11" fill="#55595f" text-anchor="${side?(q.n[0]>0?'end':'start'):'middle'}">${esc(cm(list[i].width))}</text>`;}}
+  });
+  return s+'</svg>';
+}
+function wzIcon(k){
+  if(k==='free')return `<svg viewBox="0 0 72 54" aria-hidden="true"><line x1="12" y1="27" x2="60" y2="27" stroke="#2b2e33" stroke-width="4" stroke-dasharray="6 5"/></svg>`;
+  const n=WZ_SHAPES.find(x=>x[0]===k)[1];
+  return planSVG(Array.from({length:n},()=>({width:300,turn:90,gap:0})),{W:72,H:54,pad:9,labels:false,stroke:4});
+}
+function wzOpen(skip){WZ.open=true;WZ.step='pick';WZ.skip=!!skip;WZ.mode='add';$('#wallModal').classList.add('show');wzRender();}
+function wzClose(){WZ.open=false;$('#wallModal').classList.remove('show');}
+function wzPick(k){
+  const n=WZ_SHAPES.find(x=>x[0]===k)[1],d=wzDef();
+  WZ.rows=Array.from({length:n},()=>({width:d,turn:90,gap:0}));
+  WZ.height=r1(S.walls[S.walls.length-1]?.height||d);WZ.hTouched=false;WZ.focus=0;WZ.step='edit';wzRender();
+}
+function wzList(){
+  const rep=WZ.mode==='replace'||wzBlank();
+  return {rep,from:rep?0:S.walls.length,list:(rep?[]:S.walls.map(w=>({width:w.width,turn:w.turn??90,gap:w.gap||0}))).concat(WZ.rows)};
+}
+function wzPlan(){const {from,list}=wzList();const box=$('#wzPlan');if(box)box.innerHTML=planSVG(list,{from,on:from+WZ.focus});}
+function wzRender(){
+  const body=$('#wzBody'),foot=$('#wzFoot');
+  if(WZ.step==='pick'){
+    body.className='wz-body pick';
+    body.innerHTML=`<p class="note" style="margin:0">${TR('전시장과 가장 비슷한 모양을 골라요. 길이와 방향은 다음 단계에서 고칠 수 있어요.','Pick the shape closest to your space. You can change lengths and turns in the next step.')}</p>
+      <div class="wz-shapes">${WZ_SHAPES.map(([k])=>`<button class="wz-shape" data-shape="${k}">${wzIcon(k)}<span>${wzName(k)}</span></button>`).join('')}</div>`;
+    foot.innerHTML=WZ.skip?`<button class="btn" id="wzSkip">${TR('건너뛰기','Skip')}</button>`:'';
+    body.querySelectorAll('[data-shape]').forEach(b=>b.onclick=()=>wzPick(b.dataset.shape));
+    if($('#wzSkip'))$('#wzSkip').onclick=wzClose;
+    return;
+  }
+  const {rep,from}=wzList(),blank=wzBlank();
+  const turnBtns=r=>[['90',TR('안쪽 90°','Inward 90°')],['0',TR('일직선','Straight')],['-90',TR('바깥 90°','Outward 90°')]].map(([v,t])=>`<button data-t="${v}" class="${String(r.turn)===v?'active':''}">${t}</button>`).join('');
+  body.className='wz-body';
+  body.innerHTML=`<div class="wz-side"><div class="wz-plan"><div id="wzPlan"></div><div class="wz-cap">${TR('위에서 본 대략 모양','Rough view from above')}</div></div>
+    <label class="field" style="margin:0"><span>${TR('벽 높이 (모든 벽)','Wall height (all walls)')}</span><div class="unit-in"><input type="text" inputmode="decimal" id="wzH" value="${fmtL(WZ.height)}"><i>${UL()}</i></div></label>
+    <p class="note" style="margin:0">${TR('높이를 모르면 그대로 두어도 돼요. 나중에 벽마다 고칠 수 있어요.','Not sure of the height? Leave it as is. You can change each wall later.')}</p></div>
+    <div>${blank?'':`<div class="wz-mode"><div class="seg" id="wzMode"><button data-m="add" class="${rep?'':'active'}">${TR('기존 벽에 이어 붙이기','Add to current walls')}</button><button data-m="replace" class="${rep?'active':''}">${TR('모두 바꾸기','Replace all')}</button></div></div>`}
+    <div class="wz-cards">${WZ.rows.map((r,i)=>{const showTurn=i>0||!rep;return `<div class="wz-card ${i===WZ.focus?'on':''}" data-i="${i}">
+      <div class="wz-row"><b>${TR('벽 ','Wall ')}${from+i+1}</b><div class="unit-in"><input type="text" inputmode="decimal" data-wz="len" value="${fmtL(r.width)}" aria-label="${TR('가로 길이','Width')}"><i>${UL()}</i></div><span class="spacer"></span>${WZ.rows.length>1?`<button class="btn ghost sm" data-wz="del" aria-label="${TR('이 벽 빼기','Remove this wall')}">✕</button>`:''}</div>
+      ${showTurn?`<div class="seg" data-wz="turn">${turnBtns(r)}</div>
+      <details ${r.gap?'open':''}><summary>${TR('앞 벽과 띄우기 (입구 등)','Gap from previous wall (e.g. entrance)')}</summary><div class="unit-in"><input type="text" inputmode="decimal" data-wz="gap" value="${fmtL(r.gap||0)}"><i>${UL()}</i></div></details>`:''}
+    </div>`;}).join('')}</div>
+    <div class="btn-row" style="margin-top:8px"><button class="btn sm" id="wzAdd">${TR('+ 벽 추가','+ Add wall')}</button></div>
+    ${!EN&&!isIn()?`<p class="note">길이는 557(cm) 또는 5m 57cm처럼 적어도 돼요.</p>`:''}</div>`;
+  foot.innerHTML=`<button class="btn" id="wzBack">← ${TR('모양 다시 고르기','Choose shape again')}</button><button class="btn primary" id="wzGo">${EN?`Create ${WZ.rows.length} wall${WZ.rows.length>1?'s':''}`:`벽 ${WZ.rows.length}개 만들기`}</button>`;
+  wzPlan();
+  $('#wzBack').onclick=()=>{WZ.step='pick';wzRender();};
+  $('#wzGo').onclick=wzApply;
+  $('#wzAdd').onclick=()=>{if(from+WZ.rows.length>=WZ_MAX.walls){toast(EN?`Up to ${WZ_MAX.walls} walls per exhibition`:`벽은 전시 하나에 ${WZ_MAX.walls}개까지예요`);return;}const last=WZ.rows[WZ.rows.length-1];WZ.rows.push({width:last?last.width:wzDef(),turn:90,gap:0});WZ.focus=WZ.rows.length-1;wzRender();};
+  const hI=$('#wzH');hI.addEventListener('input',()=>{const v=wzParse(hI.value);if(Number.isFinite(v)&&v>=50){WZ.height=r1(Math.min(v,WZ_MAX.h));WZ.hTouched=true;}});
+  hI.addEventListener('change',()=>{hI.value=fmtL(WZ.height);});
+  if($('#wzMode'))$('#wzMode').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;WZ.mode=b.dataset.m;wzRender();});
+  body.querySelectorAll('.wz-card').forEach(c=>{const i=Number(c.dataset.i),r=WZ.rows[i];
+    c.addEventListener('focusin',()=>{if(WZ.focus===i)return;WZ.focus=i;body.querySelectorAll('.wz-card').forEach(x=>x.classList.toggle('on',x===c));wzPlan();});
+    const len=c.querySelector('[data-wz="len"]');len.addEventListener('input',()=>{const v=wzParse(len.value);if(Number.isFinite(v)&&v>=30){r.width=r1(Math.min(v,WZ_MAX.w));wzPlan();}});
+    len.addEventListener('change',()=>{len.value=fmtL(r.width);});
+    const gap=c.querySelector('[data-wz="gap"]');if(gap){gap.addEventListener('input',()=>{const v=wzParse(gap.value||'0');if(Number.isFinite(v)&&v>=0){r.gap=r1(Math.min(v,WZ_MAX.w));wzPlan();}});gap.addEventListener('change',()=>{gap.value=fmtL(r.gap||0);});}
+    const ts=c.querySelector('[data-wz="turn"]');if(ts)ts.addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;r.turn=Number(b.dataset.t);WZ.focus=i;wzRender();});
+    const del=c.querySelector('[data-wz="del"]');if(del)del.onclick=()=>{WZ.rows.splice(i,1);WZ.focus=Math.min(WZ.focus,WZ.rows.length-1);wzRender();};
+  });
+}
+function wzApply(){
+  const {rep,from}=wzList(),blank=wzBlank();
+  if(from+WZ.rows.length>WZ_MAX.walls){toast(EN?`Up to ${WZ_MAX.walls} walls per exhibition`:`벽은 전시 하나에 ${WZ_MAX.walls}개까지예요`);return;}
+  if(rep&&!blank){const hung=S.artworks.filter(a=>a.wallId).length;
+    if(!confirm(EN?`Replace all ${S.walls.length} current walls?${hung?`\n${hung} hung work${hung>1?'s go':' goes'} back to unplaced.`:''}\nYou can undo this.`:`기존 벽 ${S.walls.length}개를 모두 바꿀까요?${hung?`\n걸려 있던 작품 ${hung}점은 미배치로 돌아가요.`:''}\n되돌리기로 취소할 수 있어요.`))return;}
+  record();
+  const color=S.walls[S.walls.length-1]?.color||'#f6f4ef',h=r1(clamp(WZ.height,50,10000));
+  const nw=WZ.rows.map((r,i)=>{const w={id:uid('w'),name:TR('벽 ','Wall ')+(from+i+1),width:r1(clamp(r.width,30,100000)),height:h,color,turn:(rep&&i===0)?90:r.turn,gap:(rep&&i===0)?0:r1(clamp(r.gap||0,0,WZ_MAX.w))};if(!WZ.hTouched)w.hGuess=true;return w;});
+  if(rep){S.artworks.forEach(a=>{a.wallId=null;});S.obstacles=[];S.walls=nw;}else S.walls.push(...nw);
+  U.activeWallId=nw[0].id;U.view='wall';U.zoom=1;U.bgEdit=null;setSel(null);
+  wzClose();renderAll();saveSoon();
+  toast(EN?`Created ${nw.length} wall${nw.length>1?'s':''}. Mark doors or text panels under Wall settings > Add obstacle.`:`벽 ${nw.length}개를 만들었어요. 문이나 서문 자리는 벽 설정의 '장애물 추가'에서 표시해요.`,7000);
+}
+$('#wzClose').onclick=wzClose;
+$('#wzBtn').onclick=()=>wzOpen(false);
 (async function init(){
   const ok=await loadFromDB();
   Object.keys(IMAGES).forEach(cacheImage);
@@ -2153,6 +2305,7 @@ $('#langBtn').onclick=async()=>{clearTimeout(saveTimer);try{await writeProject()
   if(!wallById(U.activeWallId))U.activeWallId=S.walls[0].id;
   U.zoom=1;U.bgEdit=null;
   renderAll();
+  if(!ok)wzOpen(true); // 처음 온 사람: 벽 모양부터
   if(INAPP)tipTimer=setTimeout(showTip,1500);
 })();
 </script>
