@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-FDwaemsWd45VkoSLwUDPGCxJMvSNl409EKIBV5u/pww=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-LzHlnY+fgkqK97OiGJErjL4zKx+dZCyjsUsx5Zedju4=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Exhibition Simulator · 전시 시뮬레이터</title>
 <meta name="description" content="Plan your artwork layout with real wall dimensions. 실제 벽 치수에 맞춰 작품을 미리 걸어 보세요.">
 <meta property="og:type" content="website">
@@ -63,6 +63,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 .menu-list button{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:5px}
 .menu-list button small{display:block;color:var(--muted);font-size:11px;margin-top:1px}
 .menu-list button:hover{background:#f3f0ea}
+.menu-opt{display:flex;align-items:center;gap:7px;margin-top:4px;padding:9px 10px 5px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);cursor:pointer}
+.marquee{position:absolute;border:1px dashed var(--accent);background:rgba(45,95,102,.08);pointer-events:none;z-index:8}
 
 /* layout */
 .layout{flex:1;display:grid;--lw:264px;--rw:304px;grid-template-columns:var(--lw) minmax(0,1fr) var(--rw);min-height:0}
@@ -420,6 +422,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
       <button data-exp="elevpng" data-en="All walls image (PNG)&lt;small&gt;Every wall on one sheet&lt;/small&gt;">전체 벽 이미지(PNG)<small>모든 벽을 한 장에</small></button>
       <button data-exp="sheet" data-en="Install plan — print / PDF&lt;small&gt;Drawing per wall + install measurements&lt;/small&gt;">설치 도면 인쇄 / PDF<small>벽별 도면 + 설치 치수표</small></button>
       <button data-exp="csv" data-en="Artwork list (CSV · Excel)&lt;small&gt;Artwork details and positions&lt;/small&gt;">작품 목록(CSV · 엑셀)<small>작품 정보와 위치 치수</small></button>
+      <label class="menu-opt"><input type="checkbox" id="optExpNums"> <span data-en="Number works in exported images">내보내기 그림에 작품 번호</span></label>
     </div>
   </div>
   <button class="btn ghost" id="langBtn"></button>
@@ -592,7 +595,7 @@ const unitNow=()=>{try{return S.unit;}catch(e){return INCH_DEFAULT?'in':'cm';}};
 function newWall(n,h){const d=unitNow()==='in'?304.8:300;return {id:uid('w'),name:TR('벽 ','Wall ')+n,width:d,height:h||d,color:'#f6f4ef'};}
 function defaultState(){
   const inch=INCH_DEFAULT,d=inch?304.8:300;
-  return {version:1,unit:inch?'in':'cm',title:'',artist:'',eyeLine:inch?144.78:145,snap:inch?1.27:5,grid:true,showDims:true,showLabels:true,
+  return {version:1,unit:inch?'in':'cm',title:'',artist:'',eyeLine:inch?144.78:145,snap:inch?1.27:5,grid:true,showDims:true,showLabels:true,exportNums:true,
           caption:inch?{show:true,w:10.16,h:6.35,gap:5.08,price:true}:{show:true,w:10,h:6,gap:5,price:true},
           walls:[{...newWall(1),width:d,height:d}],artworks:[],obstacles:[]};
 }
@@ -661,7 +664,7 @@ function cleanProject(st,imgs){
   const out=defaultState();st=st&&typeof st==='object'?st:{};
   out.title=str(st.title,'',200);out.artist=str(st.artist,'',200);
   out.unit=st.unit==='in'?'in':st.unit==='cm'?'cm':'cm';out.eyeLine=num(st.eyeLine,145,0,2000);out.snap=num(st.snap,5,0,100);
-  ['grid','showDims','showLabels'].forEach(k=>{if(typeof st[k]==='boolean')out[k]=st[k];});
+  ['grid','showDims','showLabels','exportNums'].forEach(k=>{if(typeof st[k]==='boolean')out[k]=st[k];});
   const c=st.caption&&typeof st.caption==='object'?st.caption:{};
   out.caption={show:c.show!==false,w:num(c.w,10,2,200),h:num(c.h,6,2,200),gap:num(c.gap,5,0,200),price:c.price!==false};
   const walls=Array.isArray(st.walls)?st.walls.filter(w=>w&&typeof w==='object').slice(0,200):[];
@@ -1045,7 +1048,7 @@ function renderHeader(){
   const t=$('#projTitle'),a=$('#projArtist');
   if(document.activeElement!==t)t.value=S.title||'';
   if(document.activeElement!==a)a.value=S.artist||'';
-  $('#optGrid').checked=S.grid;$('#optDims').checked=S.showDims;$('#optLabels').checked=S.caption.show;
+  $('#optExpNums').checked=S.exportNums!==false;$('#optGrid').checked=S.grid;$('#optDims').checked=S.showDims;$('#optLabels').checked=S.caption.show;
   const snaps=isIn()?[[0,TR('끄기','Off')],[IN/8,'1/8″'],[IN/2,'1/2″'],[IN,'1″']]:[[0,TR('끄기','Off')],[1,'1cm'],[5,'5cm'],[10,'10cm']];
   $('#optSnap').innerHTML=snaps.map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
   if(!snaps.some(([v])=>Math.abs(v-S.snap)<1e-6))S.snap=snaps[2][0];
@@ -1136,8 +1139,29 @@ function buildWall(w,sc,opts){
     if(e.target!==wallEl&&!e.target.classList.contains('wall-empty')&&!e.target.classList.contains('eye-line'))return;
     const changed=sel.kind||U.activeWallId!==w.id;setSel(null);U.activeWallId=w.id;if(changed)renderAll();
   };
-  // 손가락은 밀기·벌리기와 구분하려고 '톡 누름'(click)일 때만 선택 해제
-  wallEl.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')unsel(e);});
+  // 빈 곳에서 끌면 사각형 안(걸친 것 포함) 작품을 한꺼번에 선택. Shift·Ctrl을 누르면 기존 선택에 더함.
+  // 끌지 않고 떼면 예전처럼 선택 해제. 손가락은 밀기·벌리기와 구분하려고 '톡 누름'(click)일 때만 선택 해제
+  wallEl.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='touch'||e.button!==0)return;
+    if(e.target!==wallEl&&!e.target.classList.contains('wall-empty')&&!e.target.classList.contains('eye-line'))return;
+    e.preventDefault();
+    const add=e.shiftKey||e.ctrlKey||e.metaKey,r0=wallEl.getBoundingClientRect(),sx=e.clientX-r0.left,sy=e.clientY-r0.top;
+    let box=null;wallEl.setPointerCapture(e.pointerId);
+    const rect=ev=>{const r=wallEl.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;return{x:Math.min(sx,x),y:Math.min(sy,y),w:Math.abs(x-sx),h:Math.abs(y-sy)};};
+    const mv=ev=>{const b=rect(ev);
+      if(!box){if(b.w+b.h<5)return;box=el('div','marquee');wallEl.appendChild(box);}
+      Object.assign(box.style,{left:b.x+'px',top:b.y+'px',width:b.w+'px',height:b.h+'px'});};
+    const up=ev=>{wallEl.removeEventListener('pointermove',mv);wallEl.removeEventListener('pointerup',up);wallEl.removeEventListener('pointercancel',up);
+      if(!box){unsel(e);return;}
+      box.remove();const b=rect(ev);
+      const hit=R=>{const x=R.x*sc,y=(H-R.y-R.h)*sc;return x<b.x+b.w&&b.x<x+R.w*sc&&y<b.y+b.h&&b.y<y+R.h*sc;};
+      let kind='art',ids=artsOn(w.id).filter(a=>hit(rectA(a))).map(a=>a.id);
+      if(!ids.length){const o=obsOn(w.id).filter(o=>hit(rectO(o))).map(o=>o.id);if(o.length){kind='obs';ids=o;}}
+      if(add&&sel.kind===kind)ids=[...new Set([...sel.ids,...ids])];
+      else if(add&&!ids.length)return;
+      setSel(kind,ids);U.activeWallId=w.id;renderAll();};
+    wallEl.addEventListener('pointermove',mv);wallEl.addEventListener('pointerup',up);wallEl.addEventListener('pointercancel',up);
+  });
   wallEl.addEventListener('click',e=>{if(e.pointerType==='touch')unsel(e);});
   // drop
   wallEl.addEventListener('dragover',e=>{e.preventDefault();wallEl.classList.add('drop-over');});
@@ -1613,9 +1637,10 @@ function drawWall(ctx,w,ox,oy,sc,fs){
     ctx.save();ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=8;ctx.shadowOffsetY=3;ctx.fillStyle=a.frame?a.frameColor:'#ddd';ctx.fillRect(x,y,ww,hh);ctx.restore();
     drawArtImage(ctx,a,x+f,y+f,ww-2*f,hh-2*f);
     if(issues(a).length){ctx.strokeStyle='#b3402f';ctx.lineWidth=2;ctx.strokeRect(x-2,y-2,ww+4,hh+4);}
-    const n=nums.get(a.id),r=fs*0.75;
-    ctx.fillStyle='#2c2f33';ctx.beginPath();ctx.arc(x+r+4,y+r+4,r,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font=`600 ${fs*0.8}px Pretendard, 'Malgun Gothic', sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(n),x+r+4,y+r+4.5);ctx.textBaseline='alphabetic';
+    // 작품 번호: 작품 바깥, 왼쪽 위 (내보내기 메뉴에서 켜고 끔)
+    if(S.exportNums!==false){const n=nums.get(a.id),r=fs*0.75,cx=x+r,cy=y-r-Math.max(4,fs*0.25);
+      ctx.fillStyle='#2c2f33';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';ctx.font=`600 ${fs*0.8}px Pretendard, 'Malgun Gothic', sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(n),cx,cy+0.5);ctx.textBaseline='alphabetic';}
     if(S.caption.show&&capPos(a)!=='none'){drawCaption(ctx,a,x,y,sc);return;}
     if(S.caption.show)return;
     ctx.textAlign='left';ctx.fillStyle=dark?'#eee':'#2b2e32';ctx.font=`600 ${fs*0.85}px Pretendard, 'Malgun Gothic', sans-serif`;
@@ -1777,6 +1802,8 @@ const setZoom=z=>{U.zoom=clamp(z,0.25,6);renderStage();};
 $('#zoomIn').onclick=()=>setZoom(U.zoom*1.25);$('#zoomOut').onclick=()=>setZoom(U.zoom/1.25);$('#zoomFit').onclick=()=>setZoom(1);
 $('#canvas').addEventListener('wheel',e=>{if(U.view==='3d'||!(e.ctrlKey||e.metaKey))return;e.preventDefault();setZoom(U.zoom*(e.deltaY<0?1.1:1/1.1));},{passive:false});
 $('#optGrid').onchange=e=>{S.grid=e.target.checked;renderStage();saveSoon();};
+$('#optExpNums').onchange=e=>{S.exportNums=e.target.checked;saveSoon();};
+$('#exportMenu .menu-opt').addEventListener('click',e=>e.stopPropagation());
 $('#optDims').onchange=e=>{S.showDims=e.target.checked;renderStage();saveSoon();};
 $('#optLabels').onchange=e=>{S.caption.show=e.target.checked;renderAll();saveSoon();};
 $('#optSnap').onchange=e=>{S.snap=Number(e.target.value);saveSoon();};
@@ -1866,6 +1893,9 @@ document.addEventListener('keydown',e=>{
     renderAll();saveSoon();}
 });
 let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(renderStage,80);});
+// 창 크기는 그대로인데 작업 영역만 바뀔 때(패널 열고 닫기 등)도 벽 크기를 다시 맞춤
+if(window.ResizeObserver){let lastCW=0,lastCH=0;new ResizeObserver(en=>{const r=en[0].contentRect,cw=Math.round(r.width),ch=Math.round(r.height);
+  if(cw===lastCW&&ch===lastCH)return;const first=!lastCW;lastCW=cw;lastCH=ch;if(first)return;clearTimeout(rz);rz=setTimeout(renderStage,80);}).observe($('#canvas'));}
 
 /* ───────── 3D 보기 (보기 전용) ─────────
    벽은 순서대로 이어 붙는다: 벽마다 앞 벽 끝에서 turn°(+는 방 안쪽) 꺾고 gap cm 띄운 뒤 시작.
