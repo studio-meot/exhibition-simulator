@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-LzHlnY+fgkqK97OiGJErjL4zKx+dZCyjsUsx5Zedju4=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-AjaomtIOiVj0jU5ixZpe8znjNA+m4wic9/+8jIG1w5o=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src data: blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Exhibition Simulator · 전시 시뮬레이터</title>
 <meta name="description" content="Plan your artwork layout with real wall dimensions. 실제 벽 치수에 맞춰 작품을 미리 걸어 보세요.">
 <meta property="og:type" content="website">
@@ -210,7 +210,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 .qr-pop p{margin:0;font-size:12px;color:var(--muted);line-height:1.5}
 .qr-pop .qr-x{position:absolute;top:6px;right:6px}
 @media print{.qr-pop{display:none!important}}
-.hint{font-size:11.5px;color:var(--muted);padding:6px 12px;background:var(--panel);border-top:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hint{font-size:11.5px;color:var(--muted);padding:5px 12px;background:var(--panel);border-top:1px solid var(--line);line-height:1.75}
 .hint kbd{font-family:inherit;font-size:10.5px;border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:#fff}
 
 /* library */
@@ -252,6 +252,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 .readout dt{color:var(--muted)}
 .readout dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .warn{background:var(--danger-soft);color:var(--danger);border-radius:7px;padding:9px 11px;font-size:12px;line-height:1.55;margin-bottom:10px}
+.warn.info{background:#f1eee7;color:var(--muted)}
+.swatches.off{opacity:.4}
 .note{color:var(--muted);font-size:11.5px;line-height:1.55;margin:4px 0 10px}
 .btn-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .btn-col{display:grid;gap:6px;margin-bottom:8px}
@@ -307,6 +309,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
 .toast.show{opacity:1;transform:translateX(-50%)}
 
 @media (max-width:1180px){.layout{--lw:230px;--rw:280px}}
+@media (min-width:901px) and (max-width:1180px){
+  .topbar .brand-by{display:none}
+  .meta-in{width:130px}.meta-in.artist{width:96px}
+  #undoBtn .lbl,#redoBtn .lbl{display:none}
+  .save-status{max-width:110px;overflow:hidden;text-overflow:ellipsis}}
 #moreBtn,.mtabs,.sheet-head,.walkpad{display:none}
 @media (max-width:900px){
   html,body{height:100%;height:100dvh}
@@ -346,6 +353,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
   .toolbar{flex-wrap:nowrap;overflow-x:auto;padding:6px 8px;gap:6px;scrollbar-width:none}
   .toolbar::-webkit-scrollbar{display:none}
   .toolbar.sub{padding:5px 8px}
+  #tb2d{flex-wrap:wrap;row-gap:4px;overflow:visible}
+  .toolbar.fade-r{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent)}
   .tabs{flex:none;overflow:visible}
   .canvas{touch-action:pan-x pan-y}
   .stage{padding:34px 16px 40px 44px;gap:36px}
@@ -475,7 +484,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);bor
     <div class="canvas" id="canvas"><div class="stage" id="stage"></div><div id="three" hidden></div>
       <div class="walkpad" id="walkPad" hidden><button data-k="w" aria-label="앞으로" data-en-aria="Forward">▲</button><button data-k="arrowleft" aria-label="왼쪽으로 돌기" data-en-aria="Turn left">↺</button><button data-k="s" aria-label="뒤로" data-en-aria="Back">▼</button><button data-k="arrowright" aria-label="오른쪽으로 돌기" data-en-aria="Turn right">↻</button></div></div>
     <div class="hint" id="hint3d" hidden></div>
-    <div class="hint" id="hint2d" data-en="Drag to move · &lt;kbd&gt;Shift&lt;/kbd&gt;+click to multi-select · Arrow keys nudge (&lt;kbd&gt;Shift&lt;/kbd&gt; bigger steps) · Hold &lt;kbd&gt;Alt&lt;/kbd&gt; while dragging to turn off guides · &lt;kbd&gt;Delete&lt;/kbd&gt; take off wall · &lt;kbd&gt;Ctrl&lt;/kbd&gt;+wheel zoom">드래그로 이동 · <kbd>Shift</kbd>+클릭 여러 개 선택 · 방향키 조금씩 이동 (<kbd>Shift</kbd> 크게) · <kbd>Alt</kbd> 누른 채 드래그하면 정렬 가이드 끔 · <kbd>Delete</kbd> 벽에서 내리기 · <kbd>Ctrl</kbd>+휠 확대</div>
+    <div class="hint" id="hint2d" data-en="Drag to move · Drag on empty wall to select several (&lt;kbd&gt;Shift&lt;/kbd&gt;+click adds) · Arrow keys nudge (&lt;kbd&gt;Shift&lt;/kbd&gt; more) · &lt;kbd&gt;Alt&lt;/kbd&gt;+drag skips guides · &lt;kbd&gt;Delete&lt;/kbd&gt; take off wall · &lt;kbd&gt;Ctrl&lt;/kbd&gt;+wheel zoom">드래그로 이동 · 빈 곳을 드래그해 여러 개 선택 (<kbd>Shift</kbd>+클릭으로 추가) · 방향키로 조금씩 (<kbd>Shift</kbd> 크게) · <kbd>Alt</kbd>+드래그 정렬 가이드 끔 · <kbd>Delete</kbd> 벽에서 내리기 · <kbd>Ctrl</kbd>+휠 확대</div>
   </section>
 
   <aside class="inspector" id="inspector"></aside>
@@ -896,7 +905,7 @@ function renderModal(){
     h+=`<span class="m-label">${TR('방향','Orientation')}</span><div class="seg" id="mOrient" style="margin-bottom:12px"><button data-o="land" class="${M.orient==='land'?'active':''}">${TR('가로형','Landscape')} ▭</button><button data-o="port" class="${M.orient==='port'?'active':''}">${TR('세로형','Portrait')} ▯</button></div>`;
   }
   h+=`<div class="m-row"><div style="width:110px"><span class="m-label">${TR('액자 두께 (한쪽)','Frame width (each side)')}</span><div class="unit-in"><input ${lenAttr()} id="mFrame" min="0" step="0.5" value="${fmtL(M.frame)}"><i>${UL()}</i></div></div>
-    <div><span class="m-label">${TR('액자 색','Frame color')}</span><div class="swatches">${FRAME_COLORS.map(c=>`<button class="sw ${M.frameColor===c?'active':''}" data-fc="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}<input type="color" id="mFC" value="${M.frameColor}"></div></div></div>
+    <div><span class="m-label">${TR('액자 색','Frame color')}</span><div class="swatches ${M.frame>0?'':'off'}" id="mFCWrap" title="${M.frame>0?'':TR('색을 고르면 액자가 생겨요','Pick a color to add a frame')}">${FRAME_COLORS.map(c=>`<button class="sw ${M.frameColor===c?'active':''}" data-fc="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}<input type="color" id="mFC" value="${M.frameColor}"></div></div></div>
     ${ph?`<label class="field"><span>${TR('캔버스 가운데에 적을 문구 (선택)','Text on the canvas (optional)')}</span><textarea id="mCText" placeholder="${TR('예: 2027 신작 예정 · 유화','e.g. New work 2027 · oil')}">${esc(M.canvasText)}</textarea></label>
     <div class="m-row"><div><span class="m-label">${TR('캔버스 색','Canvas color')}</span><div class="swatches">${CANVAS_COLORS.map(c=>`<button class="sw ${M.canvasColor===c?'active':''}" data-cc="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}<input type="color" id="mCC" value="${M.canvasColor}"></div></div></div>
     <label class="check"><input type="checkbox" id="mShowSize" ${M.showSize?'checked':''}> ${TR('캔버스에 사이즈 적기','Show size on canvas')}</label>`
@@ -911,9 +920,11 @@ function renderModal(){
   const cw=$('#mCW'),ch=$('#mCH');
   if(cw){cw.addEventListener('input',()=>{M.cw=r1(parseLen(cw.value)||0);renderModalPreview();});ch.addEventListener('input',()=>{M.ch=r1(parseLen(ch.value)||0);renderModalPreview();});
     const rb=$('#mRatio');if(rb)rb.addEventListener('click',()=>{M.ch=r1((Number(M.cw)||0)/imgRatio());ch.value=fmtL(M.ch);renderModalPreview();});}
-  $('#mFrame').addEventListener('input',e=>{M.frame=Math.max(0,r1(parseLen(e.target.value)||0));renderModalPreview();});
-  $('#mForm').querySelectorAll('[data-fc]').forEach(b=>b.addEventListener('click',()=>{M.frameColor=b.dataset.fc;renderModal();}));
-  $('#mFC').addEventListener('input',e=>{M.frameColor=e.target.value;renderModalPreview();});
+  const fcOn=()=>{const wr=$('#mFCWrap');wr.classList.toggle('off',!(M.frame>0));wr.title=M.frame>0?'':TR('색을 고르면 액자가 생겨요','Pick a color to add a frame');};
+  const fcPick=()=>{if(!(M.frame>0))M.frame=isIn()?2.54:3;};
+  $('#mFrame').addEventListener('input',e=>{M.frame=Math.max(0,r1(parseLen(e.target.value)||0));fcOn();renderModalPreview();});
+  $('#mForm').querySelectorAll('[data-fc]').forEach(b=>b.addEventListener('click',()=>{M.frameColor=b.dataset.fc;fcPick();renderModal();}));
+  $('#mFC').addEventListener('input',e=>{M.frameColor=e.target.value;if(!(M.frame>0)){fcPick();$('#mFrame').value=fmtL(M.frame);fcOn();}renderModalPreview();});
   if(ph){
     $('#mCText').addEventListener('input',e=>{M.canvasText=e.target.value;renderModalPreview();});
     $('#mForm').querySelectorAll('[data-cc]').forEach(b=>b.addEventListener('click',()=>{M.canvasColor=b.dataset.cc;renderModal();}));
@@ -944,10 +955,10 @@ function renderModalPreview(){
   const diff=ir?Math.abs(Math.log(ar/ir)):0;
   if(!ir){}
   else if((ir>1.03&&ar<0.97)||(ir<0.97&&ar>1.03))warns.push(EN?`The photo is ${ir>1?'landscape':'portrait'} but the work is set to ${ar>1?'landscape':'portrait'}. Check the orientation.`:`사진은 ${ir>1?'가로형':'세로형'}인데 작품은 ${ar>1?'가로형':'세로형'}으로 골랐어요. 방향을 확인해 주세요.`);
-  else if(ir&&diff>0.04&&M.fit==='cover')warns.push(TR('사진과 작품 비율이 달라 가장자리가 조금 잘려 보여요. 잘리지 않게 하려면 "사진 전체 보이기"를 켜세요.','The photo and work ratios differ, so edges are slightly cropped. Turn on "Show whole photo" to avoid cropping.'));
+  else if(ir&&diff>0.04&&M.fit==='cover')warns.push('i:'+TR('사진과 작품 비율이 달라 가장자리가 조금 잘려 보여요. 잘리지 않게 하려면 "사진 전체 보이기"를 켜세요.','The photo and work ratios differ, so edges are slightly cropped. Turn on "Show whole photo" to avoid cropping.'));
   const wall=activeWall();
   if(ow>wall.width||oh>wall.height)warns.push(EN?`Larger than the current wall (${cm(wall.width)} × ${cm(wall.height)}).`:`현재 벽(${cm(wall.width)} × ${cm(wall.height)})보다 커요.`);
-  $('#mWarn').innerHTML=warns.map(x=>`<div class="warn">${esc(x)}</div>`).join('');
+  $('#mWarn').innerHTML=warns.map(x=>x.startsWith('i:')?`<div class="warn info">${esc(x.slice(2))}</div>`:`<div class="warn">${esc(x)}</div>`).join('');
 }
 function closeModal(){$('#sizeModal').classList.remove('show');M=null;}
 function confirmModal(place){
@@ -1033,7 +1044,10 @@ function doAlign(kind,list,arg){if(!list.length)return;record();ALIGN[kind](list
 
 /* ───────── rendering ───────── */
 const MQ=matchMedia('(max-width:900px)');const MOB=()=>MQ.matches;
-function renderAll(){fixState();renderHeader();renderTabs();renderStage();renderLibrary();renderInspector();updateUndo();renderMTabs();}
+function renderAll(){fixState();renderHeader();renderTabs();renderStage();renderLibrary();renderInspector();updateUndo();renderMTabs();tbFade();}
+/* 휴대폰: 옆으로 밀리는 도구줄 오른쪽 끝을 흐리게 해서 더 있다는 걸 보여 줌 */
+function tbFade(){document.querySelectorAll('.center>.toolbar').forEach(t=>t.classList.toggle('fade-r',t.scrollLeft+t.clientWidth<t.scrollWidth-4));}
+document.querySelectorAll('.center>.toolbar').forEach(t=>t.addEventListener('scroll',tbFade,{passive:true}));window.addEventListener('resize',tbFade);
 /* 휴대폰: 아래 탭과 밑에서 올라오는 판 */
 let SHEET=null;
 function openSheet(k){SHEET=SHEET===k?null:k;applySheet();}
@@ -2228,7 +2242,9 @@ document.querySelectorAll('#walkPad [data-k]').forEach(b=>{
 })();
 $('#langBtn').textContent=EN?'한국어':'English';
 $('#langBtn').title=EN?'한국어로 보기':'View in English';
-$('#langBtn').onclick=async()=>{clearTimeout(saveTimer);try{await writeProject();}catch(e){}
+$('#langBtn').onclick=async()=>{clearTimeout(saveTimer);
+  S.walls.forEach(w=>{const m=/^(?:벽|Wall) (\d+)$/.exec(w.name||'');if(m)w.name=(EN?'벽 ':'Wall ')+m[1];});
+  try{await writeProject();}catch(e){}
   try{localStorage.setItem('exhibit-sim-lang',EN?'ko':'en');}catch(e){}location.reload();};
 /* ───────── 벽 한 번에 만들기: 모양 고르기 → 길이 적기 → 위에서 본 평면도로 확인 ─────────
    AI 없이, 사진 없이. 기본은 지금 벽 뒤에 이어 붙이기. 모두 바꾸기는 확인 후, 되돌리기로 취소 가능 */
@@ -2338,7 +2354,7 @@ function wzApply(){
   if(rep){S.artworks.forEach(a=>{a.wallId=null;});S.obstacles=[];S.walls=nw;}else S.walls.push(...nw);
   U.activeWallId=nw[0].id;U.view='wall';U.zoom=1;U.bgEdit=null;setSel(null);
   wzClose();renderAll();saveSoon();
-  toast(EN?`Created ${nw.length} wall${nw.length>1?'s':''}. Mark doors or text panels under Wall settings > Add obstacle.`:`벽 ${nw.length}개를 만들었어요. 문이나 서문 자리는 벽 설정의 '장애물 추가'에서 표시해요.`,7000);
+  toast(EN?`Created ${nw.length} wall${nw.length>1?'s':''}. Mark doors or text panels under Wall settings > Add obstacle.`:`벽 ${nw.length}개를 만들었어요. 문이나 서문 자리는 벽 설정의 '장애물 추가'에서 표시해요.`,4500);
 }
 $('#wzClose').onclick=wzClose;
 $('#wzBtn').onclick=()=>wzOpen(false);
